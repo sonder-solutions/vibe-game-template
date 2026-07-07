@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultrasound DTMF Modem</title>
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #12141a;
+    --border: #1e2130;
+    --text: #d4d4dc;
+    --text-dim: #6b6e7a;
+    --accent: #4f8ff7;
+    --peak: #f74f4f;
+    --ch1: #22c55e;
+    --ch2: #a855f7;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+  h1 { font-size: 1.3rem; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 20px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 700px; margin-bottom: 16px; }
+  .panel h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-bottom: 14px; }
+
+  .role-selector { display: flex; gap: 8px; margin-bottom: 14px; }
+  .role-btn { flex: 1; padding: 12px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); color: var(--text-dim); font-family: var(--font); font-weight: 600; font-size: 0.9rem; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .role-btn .desc { font-size: 0.7rem; font-weight: 400; margin-top: 2px; }
+  .role-btn.master-active { border-color: var(--ch1); color: var(--ch1); background: rgba(34,197,94,0.08); }
+  .role-btn.slave-active { border-color: var(--ch2); color: var(--ch2); background: rgba(168,85,247,0.08); }
+
+  .keypad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .key {
+    padding: 22px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-family: var(--mono);
+    font-size: 1.6rem; font-weight: 700; cursor: pointer; text-align: center;
+    transition: all 0.1s; user-select: none;
+  }
+  .key:hover { background: #1a1d28; }
+  .key:active, .key.pressed { color: #fff; }
+  .key.ch1-key:active, .key.ch1-key.pressed { background: var(--ch1); border-color: var(--ch1); }
+  .key.ch2-key:active, .key.ch2-key.pressed { background: var(--ch2); border-color: var(--ch2); }
+  .key .sub { font-size: 0.6rem; color: var(--text-dim); font-weight: 400; display: block; margin-top: 6px; line-height: 1.3; }
+  .key:active .sub, .key.pressed .sub { color: rgba(255,255,255,0.6); }
+
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button.ctrl {
+    padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-family: var(--font);
+    font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+  }
+  button.ctrl:hover { background: #1a1d28; }
+  button.ctrl.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .slider-group { display: flex; align-items: center; gap: 8px; }
+  .slider-group label { font-size: 0.75rem; color: var(--text-dim); white-space: nowrap; }
+  .slider-group input[type="range"] { width: 120px; accent-color: var(--accent); }
+  .slider-group .val { font-family: var(--mono); font-size: 0.85rem; min-width: 50px; }
+
+  .freq-monitor { display: flex; gap: 6px; align-items: flex-end; height: 130px; padding: 10px; background: #08090d; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; }
+  .freq-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; }
+  .freq-bar-container { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .freq-bar { width: 70%; border-radius: 3px 3px 0 0; transition: height 0.08s ease-out; min-height: 2px; }
+  .freq-bar.ch1 { background: var(--ch1); }
+  .freq-bar.ch2 { background: var(--ch2); }
+  .freq-label { font-family: var(--mono); font-size: 0.6rem; color: var(--text-dim); text-align: center; }
+  .freq-value { font-family: var(--mono); font-size: 0.65rem; font-weight: 700; color: var(--text); }
+  .ch-divider { width: 2px; background: var(--border); align-self: stretch; margin: 0 4px; }
+
+  .decode-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .decode-box { background: #08090d; border: 1px solid var(--border); border-radius: 8px; padding: 12px; min-height: 60px; }
+  .decode-box h3 { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .decode-box h3 .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .decode-box .content { font-family: var(--mono); font-size: 1rem; word-break: break-all; min-height: 20px; white-space: pre-wrap; letter-spacing: 0.1em; }
+
+  .status { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); padding: 8px; background: #08090d; border-radius: 6px; min-height: 36px; }
+  .sym-legend { font-size: 0.7rem; color: var(--text-dim); margin-top: 6px; font-family: var(--mono); }
+
+  @media (max-width: 520px) {
+    .decode-section { grid-template-columns: 1fr; }
+    .freq-monitor { height: 100px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Ultrasound DTMF Modem</h1>
+<p class="subtitle">3-frequency × 2-channel • 3 symbols: 0, 1, fn • Using UltrasoundService Module</p>
+
+<!-- Role & Transmitter -->
+<div class="panel">
+  <h2>Transmit</h2>
+  <div class="role-selector">
+    <button class="role-btn master-active" id="masterBtn" onclick="setRole('master')">
+      Master<div class="desc">TX: CH1 (17.0/17.5/18.0 kHz)</div>
+    </button>
+    <button class="role-btn" id="slaveBtn" onclick="setRole('slave')">
+      Slave<div class="desc">TX: CH2 (18.5/19.0/19.5 kHz)</div>
+    </button>
+  </div>
+  <div class="keypad" id="keypad"></div>
+  <div class="sym-legend">0 = low+mid | 1 = high+mid | fn = low+high</div>
+  <div class="controls" style="margin-top:12px">
+    <div class="slider-group">
+      <label>Symbol:</label>
+      <input type="range" id="symbolRate" min="80" max="500" value="250" step="10">
+      <span class="val" id="symbolVal">250ms</span>
+    </div>
+    <div class="slider-group">
+      <label>Vol:</label>
+      <input type="range" id="masterVol" min="0" max="100" value="100">
+    </div>
+  </div>
+</div>
+
+<!-- Frequency Monitor -->
+<div class="panel">
+  <h2>Frequency Monitor (RX band)</h2>
+  <div class="freq-monitor" id="freqMonitor"></div>
+  <div class="controls">
+    <button class="ctrl primary" id="listenBtn" onclick="toggleListen()">● Start Listening</button>
+    <div style="flex:1"></div>
+    <span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)" id="monitorInfo">—</span>
+  </div>
+</div>
+
+<!-- Receiver -->
+<div class="panel">
+  <h2>Receive</h2>
+  <div class="decode-box" style="margin-bottom:12px">
+    <h3><span class="dot" id="rxDot" style="background:var(--ch2)"></span> <span id="rxLabel">Received (from Slave)</span></h3>
+    <div class="content" id="rxDecoded" style="color:var(--ch2)"></div>
+  </div>
+  <div class="status" id="rxStatus">Start listening to receive.</div>
+  <div style="margin-top:8px">
+    <button class="ctrl" onclick="clearDecoded()">🗑 Clear</button>
+  </div>
+</div>
+
+<script type="module">
+import { UltrasoundService } from '../src/modules/communication/ultrasound/index.ts';
+
+// ===== Frequency Plan =====
+const CH1 = [17000, 17500, 18000];
+const CH2 = [18500, 19000, 19500];
+const SYMBOLS = ['0', '1', 'fn'];
+
+// ===== State =====
+let ultrasound = null;
+let isListening = false;
+let animId = null;
+let role = 'master';
+let rxText = '';
+
+// ===== Ultrasound Service =====
+async function ensureAudio() {
+  if (!ultrasound) {
+    ultrasound = new UltrasoundService();
+    await ultrasound.initialize({
+      role: role,
+      symbolDuration: parseInt(document.getElementById('symbolRate').value),
+      txPower: parseInt(document.getElementById('masterVol').value) / 100 * 0.35,
+      confirmationCount: 2,
+      noiseGateMultiplier: 8,
+    });
+
+    ultrasound.onEvent(handleUltrasoundEvent);
+  }
+}
+
+function handleUltrasoundEvent(event) {
+  switch (event.type) {
+    case 'symbol-received':
+      // Display raw symbols in real-time (like original implementation)
+      rxText += event.payload.symbolName;
+      document.getElementById('rxDecoded').textContent = rxText;
+      break;
+    case 'message-received':
+      rxText += event.payload.message || '';
+      document.getElementById('rxDecoded').textContent = rxText;
+      break;
+    case 'data-received':
+      // Handle binary data if needed
+      break;
+    case 'peer-discovered':
+      console.log('Peer discovered:', event.payload);
+      break;
+    case 'error':
+      console.error('Ultrasound error:', event.payload);
+      document.getElementById('rxStatus').textContent = 'Error: ' + JSON.stringify(event.payload);
+      break;
+  }
+}
+
+// ===== Role =====
+window.setRole = async function(r) {
+  role = r;
+  document.getElementById('masterBtn').className = 'role-btn' + (r === 'master' ? ' master-active' : '');
+  document.getElementById('slaveBtn').className = 'role-btn' + (r === 'slave' ? ' slave-active' : '');
+
+  // Update RX label and color
+  if (r === 'master') {
+    document.getElementById('rxLabel').textContent = 'Received (from Slave)';
+    document.getElementById('rxDot').style.background = 'var(--ch2)';
+    document.getElementById('rxDecoded').style.color = 'var(--ch2)';
+  } else {
+    document.getElementById('rxLabel').textContent = 'Received (from Master)';
+    document.getElementById('rxDot').style.background = 'var(--ch1)';
+    document.getElementById('rxDecoded').style.color = 'var(--ch1)';
+  }
+
+  buildKeypad();
+  buildMonitor();
+
+  // Reinitialize if already initialized
+  if (ultrasound) {
+    await ultrasound.close();
+    ultrasound = null;
+    await ensureAudio();
+  }
+};
+
+// ===== Keypad =====
+function buildKeypad() {
+  const el = document.getElementById('keypad');
+  el.innerHTML = '';
+  const freqs = role === 'master' ? CH1 : CH2;
+  const cls = role === 'master' ? 'ch1-key' : 'ch2-key';
+
+  const pairs = [[0, 1], [2, 1], [0, 2]];
+  for (let i = 0; i < 3; i++) {
+    const key = document.createElement('button');
+    key.className = 'key ' + cls;
+    const pair = pairs[i];
+    const fA = freqs[pair[0]], fB = freqs[pair[1]];
+    const label = SYMBOLS[i];
+    key.innerHTML = label + '<span class="sub">' + (fA/1000).toFixed(1) + 'k + ' + (fB/1000).toFixed(1) + 'k</span>';
+    key.addEventListener('mousedown', () => playSym(i, key));
+    key.addEventListener('mouseup', () => stopSym(key));
+    key.addEventListener('mouseleave', () => stopSym(key));
+    key.addEventListener('touchstart', (e) => { e.preventDefault(); playSym(i, key); });
+    key.addEventListener('touchend', () => stopSym(key));
+    el.appendChild(key);
+  }
+}
+
+async function playSym(idx, keyEl) {
+  await ensureAudio();
+  stopSym(keyEl);
+  keyEl.classList.add('pressed');
+  ultrasound.transmitSymbol(idx);
+}
+
+function stopSym(keyEl) {
+  if (keyEl) keyEl.classList.remove('pressed');
+  if (ultrasound) {
+    ultrasound.stopTransmission();
+  }
+}
+
+// ===== Listen =====
+window.toggleListen = async function() {
+  await ensureAudio();
+  const btn = document.getElementById('listenBtn');
+  if (isListening) {
+    ultrasound.stopListening();
+    isListening = false;
+    if (animId) cancelAnimationFrame(animId);
+    btn.textContent = '● Start Listening';
+    btn.classList.remove('active');
+  } else {
+    await ultrasound.startListening();
+    isListening = true;
+    btn.textContent = '■ Stop Listening';
+    btn.classList.add('active');
+    drawMonitor();
+  }
+};
+
+// ===== Frequency Monitor =====
+function buildMonitor() {
+  const el = document.getElementById('freqMonitor');
+  el.innerHTML = '';
+  const rxFreqs = role === 'master' ? CH2 : CH1;
+  const barClass = role === 'master' ? 'ch2' : 'ch1';
+  rxFreqs.forEach((f, i) => {
+    const wrap = document.createElement('div'); wrap.className = 'freq-bar-wrap';
+    const val = document.createElement('div'); val.className = 'freq-value'; val.id = 'barVal' + i; val.textContent = '—';
+    const cont = document.createElement('div'); cont.className = 'freq-bar-container';
+    const bar = document.createElement('div'); bar.className = 'freq-bar ' + barClass; bar.id = 'bar' + i; bar.style.height = '2px';
+    const lbl = document.createElement('div'); lbl.className = 'freq-label'; lbl.textContent = (f/1000).toFixed(1) + 'k';
+    cont.appendChild(bar); wrap.appendChild(val); wrap.appendChild(cont); wrap.appendChild(lbl);
+    el.appendChild(wrap);
+  });
+}
+
+function drawMonitor() {
+  if (!isListening || !ultrasound) return;
+  animId = requestAnimationFrame(drawMonitor);
+
+  const state = ultrasound.getInternalState();
+  const powers = state.goertzelPowers;
+
+  if (powers.length < 4) return;
+
+  // Logarithmic scaling for better visibility across distances
+  // Human perception of sound is logarithmic, so this matches how we hear
+  const minPower = 100;      // Minimum visible threshold
+  const maxPower = 100000;   // Maximum expected power
+  const logMin = Math.log10(minPower);
+  const logMax = Math.log10(maxPower);
+
+  // 3 RX frequency bars (indices 1,2,3; 0 is noise band)
+  for (let i = 0; i < 3; i++) {
+    const p = powers[i + 1];
+    const bar = document.getElementById('bar' + i);
+    const val = document.getElementById('barVal' + i);
+
+    if (bar) {
+      // Logarithmic normalization
+      const logP = Math.log10(Math.max(p, minPower));
+      const normalized = (logP - logMin) / (logMax - logMin);
+      const height = Math.max(2, Math.min(100, normalized * 100));
+      bar.style.height = height + '%';
+    }
+
+    if (val) val.textContent = p > 100 ? Math.round(p) : '—';
+  }
+
+  const np = powers[0];
+  const ndb = np > 0.0001 ? (10 * Math.log10(np)).toFixed(0) : '-∞';
+  const rxLabel = role === 'master' ? 'CH2' : 'CH1';
+  document.getElementById('monitorInfo').textContent =
+    'RX: ' + rxLabel + ' | Noise: ' + ndb + ' dB | SR: ' + state.sampleRate;
+
+  // Update status
+  const rxPowers = [powers[1], powers[2], powers[3]];
+  const rxTotal = rxPowers.reduce((a, b) => a + b, 0);
+  const rxColor = role === 'master' ? 'var(--ch2)' : 'var(--ch1)';
+  document.getElementById('rxStatus').innerHTML =
+    '<span style="color:var(--peak)">Noise: ' + ndb + '</span> | ' +
+    '<span style="color:' + rxColor + '">' + rxLabel + ': ' + (rxTotal > 0 ? (10 * Math.log10(rxTotal)).toFixed(0) : '-∞') + '</span>';
+}
+
+// ===== Clear =====
+window.clearDecoded = function() {
+  rxText = '';
+  document.getElementById('rxDecoded').textContent = '';
+};
+
+// ===== Slider =====
+document.getElementById('symbolRate').addEventListener('input', function() {
+  document.getElementById('symbolVal').textContent = this.value + 'ms';
+  if (ultrasound) {
+    ultrasound.updateConfig({ symbolDuration: parseInt(this.value) });
+  }
+});
+
+document.getElementById('masterVol').addEventListener('input', function() {
+  if (ultrasound) {
+    ultrasound.updateConfig({ txPower: parseInt(this.value) / 100 * 0.35 });
+  }
+});
+
+// ===== Init =====
+buildKeypad();
+buildMonitor();
+</script>
+</body>
+</html>

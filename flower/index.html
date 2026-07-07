@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flower Arranging Game</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="gameContainer">
+    <div id="palette">
+      <h2>Flowers</h2>
+      <div id="flowerPalette"></div>
+    </div>
+    <div id="canvasContainer">
+      <button id="shareBtn" title="Share"><i class="fas fa-share-alt"></i> <span class="key-badge">Enter</span></button>
+      <button id="clearBtn" title="Clear Canvas"><i class="fas fa-trash"></i> <span class="key-badge">Del</span></button>
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <div class="canvas-hint">
+        <div><kbd>Tab</kbd> Toggle Selection</div>
+        <div><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> Move</div>
+      </div>
+    </div>
+    <div id="controls" class="disabled">
+      <game-slider label="Rotation (A/D)" min="-180" max="180" value="0"></game-slider>
+      <game-slider label="Size (W/S)" min="128" max="512" value="256"></game-slider>
+      <button id="bringToTopBtn" title="Bring to Top"><i class="fas fa-arrow-up"></i> Top <span class="key-badge">Q</span></button>
+      <button id="flipBtn" title="Flip Horizontal"><i class="fas fa-arrows-alt-h"></i> Flip <span class="key-badge">/</span></button>
+      <button id="deleteBtn" title="Delete"><i class="fas fa-times"></i> Delete <span class="key-badge">E</span></button>
+    </div>
+  </div>
+  <script type="module" src="./game.ts"></script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Template Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a2e;
+      color: #00ff41;
+      font-family: 'VT323', monospace;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+    h1 {
+      font-family: 'Press Start 2P', cursive;
+      color: #ff00ff;
+      text-align: center;
+      text-shadow: 3px 3px 0px #00ffff, 6px 6px 0px #ffff00;
+      font-size: 24px;
+    }
+    canvas {
+      border: 4px solid #00ff41;
+      display: block;
+      margin: 20px auto;
+      box-shadow: 0 0 20px #00ff41, inset 0 0 20px rgba(0, 255, 65, 0.1);
+      background: #0f0f1e;
+      max-width: 100%;
+      height: auto;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Modal Styles */
+    #nameModal, #endGameModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #nameModal.hidden, #endGameModal.hidden {
+      display: none;
+    }
+    .modal-content {
+      background: #1a1a2e;
+      border: 4px solid #00ff41;
+      border-radius: 8px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 0 30px #00ff41;
+      min-width: 90dvw;
+      max-width: 95dvw;
+    }
+    .modal-content h2 {
+      font-family: 'Press Start 2P', cursive;
+      color: #ff00ff;
+      font-size: 20px;
+      margin: 0 0 30px 0;
+      text-shadow: 2px 2px 0px #00ffff;
+    }
+    .modal-content .final-score {
+      font-family: 'Press Start 2P', cursive;
+      color: #ffff00;
+      font-size: 36px;
+      margin: 20px 0;
+      text-shadow: 3px 3px 0px #ff00ff;
+    }
+    .modal-content .modal-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .modal-content button {
+      padding: 18px 24px;
+      font-size: 18px;
+      font-family: 'Press Start 2P', cursive;
+      border: 2px solid #00ffff;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 0 10px currentColor;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .modal-content button:hover {
+      box-shadow: 0 0 20px currentColor;
+    }
+    .modal-content #modalSubmitBtn {
+      background: #ff00ff;
+      color: white;
+    }
+    .modal-content #modalShareBtn {
+      background: #00ffff;
+      color: #1a1a2e;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 18px;
+      font-size: 24px;
+      font-family: 'VT323', monospace;
+      background: #0f0f1e;
+      border: 2px solid #00ffff;
+      color: #00ff41;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    .modal-content input:focus {
+      outline: none;
+      border-color: #ff00ff;
+      box-shadow: 0 0 10px #ff00ff;
+    }
+    .modal-content #startGameBtn {
+      background: #ff00ff;
+      color: white;
+    }
+
+    /* Tablet and up */
+    @media (min-width: 768px) {
+      .modal-content {
+        padding: 40px;
+        min-width: auto;
+        max-width: 500px;
+      }
+      .modal-content h2 {
+        font-size: 24px;
+      }
+      .modal-content .final-score {
+        font-size: 48px;
+      }
+      .modal-content button {
+        padding: 15px 30px;
+        font-size: 16px;
+      }
+      .modal-content input {
+        padding: 15px;
+        font-size: 20px;
+      }
+    }
+
+    /* Responsive styles - Tablet and up */
+    @media (min-width: 768px) {
+      body {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+        margin: 20px 0;
+      }
+
+      canvas {
+        margin: 20px auto;
+      }
+
+      score-display {
+        --score-font-size: 32px;
+        margin: 20px 0;
+      }
+
+      submit-button {
+        margin: 20px auto;
+        font-size: 16px;
+      }
+
+      #shareBtn {
+        margin: 20px auto;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+    }
+
+    /* Large screens */
+    @media (min-width: 1200px) {
+      h1 {
+        font-size: 32px;
+      }
+    }
+    score-display {
+      --score-color: #ffff00;
+      --score-font-size: 32px;
+      font-family: 'Press Start 2P', cursive;
+      display: block;
+      text-align: center;
+      margin: 20px 0;
+      text-shadow: 2px 2px 0px #ff00ff;
+    }
+    submit-button {
+      --button-color: #ff00ff;
+      display: block;
+      text-align: center;
+      margin: 20px auto;
+    }
+    #shareBtn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: #ff00ff;
+      color: white;
+      border: 2px solid #00ffff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: 'Press Start 2P', cursive;
+      box-shadow: 0 0 10px #ff00ff;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #shareBtn:hover {
+      box-shadow: 0 0 20px #ff00ff;
+    }
+    share-card {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Name Modal -->
+  <div id="nameModal">
+    <div class="modal-content">
+      <h2>Enter Your Name</h2>
+      <input type="text" id="playerNameInput" placeholder="Player Name" maxlength="20" autocomplete="off">
+      <br>
+      <button id="startGameBtn">Confirm</button>
+    </div>
+  </div>
+
+  <!-- End Game Modal -->
+  <div id="endGameModal" class="hidden">
+    <div class="modal-content">
+      <h2>Time's Up!</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="modal-buttons">
+        <button id="modalSubmitBtn">Submit Score</button>
+        <button id="modalShareBtn">Share</button>
+      </div>
+    </div>
+  </div>
+
+  <h1>Game Template Demo</h1>
+  <score-display></score-display>
+  <div id="timerDisplay" style="text-align: center; font-family: 'Press Start 2P', cursive; font-size: 32px; color: #00ffff; margin: 20px 0; text-shadow: 2px 2px 0px #ff00ff;">60</div>
+  <div style="position: relative; display: block; width: 100%; max-width: 800px; margin: 0 auto;">
+    <canvas id="gameCanvas" width="800" height="600" style="display: block; width: 100%; height: auto;"></canvas>
+    <button id="startCountdownBtn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; font-size: 20px; font-family: 'Press Start 2P', cursive; background: #00ffff; color: #1a1a2e; border: 2px solid #ff00ff; border-radius: 4px; cursor: pointer; box-shadow: 0 0 10px #00ffff; user-select: none; -webkit-user-select: none;">Start Game</button>
+  </div>
+  <share-card></share-card>
+
+  <script type="module" src="./game.ts"></script>
+</body>
+</html>
