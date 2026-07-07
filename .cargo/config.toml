@@ -1,0 +1,7 @@
+[target.x86_64-unknown-linux-gnu]
+linker = "rust-lld"
+rustflags = ["-C", "link-self-contained=on"]
+
+[target.wasm32-unknown-unknown]
+linker = "rust-lld"
+rustflags = ["-C", "link-self-contained=on"]
