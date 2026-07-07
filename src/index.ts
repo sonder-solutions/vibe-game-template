@@ -108,6 +108,13 @@ export { MobileProtection } from './modules/mobile';
 export type { IMobileProtection, MobileProtectionConfig } from './modules/mobile';
 
 // ============================================================================
+// Submission Module (Optional - Tree-Shakeable)
+// ============================================================================
+
+export { ScoreSubmissionModule } from './modules/submission';
+export type { ScoreSubmissionConfig, ScoreData, SubmissionResult } from './modules/submission';
+
+// ============================================================================
 // UI Components (Optional - Tree-Shakeable)
 // ============================================================================
 
