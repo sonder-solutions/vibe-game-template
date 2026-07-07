@@ -3,17 +3,3 @@ dist/
 .DS_Store
 *.log
 .env
-target/
-GameTemplate/
-assets/output/
-demo/
-flower/
-qr-code/
-ultrasound/
-tests/
-docs/
-.github/
-LEADERBOARD.md
-WEBRTC_USAGE.md
-flower.vite.config.ts
-qr-code.vite.config.ts
