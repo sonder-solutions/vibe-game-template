@@ -9,6 +9,7 @@
     "dev:flower": "vite --config flower.vite.config.ts",
     "dev:qr": "vite --config qr-code.vite.config.ts",
     "build": "tsc && vite build",
+    "build:lib": "tsc && vite build --config lib.vite.config.ts",
     "build:flower": "npm run pack-assets && tsc && vite build --config flower.vite.config.ts",
     "build:qr": "tsc && vite build --config qr-code.vite.config.ts",
     "test": "vitest",
