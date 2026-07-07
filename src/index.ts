@@ -13,6 +13,13 @@
 export type { IEngine } from './core/engine/IEngine';
 export type { Sprite, GameState, EngineConfig, Vector2D } from './core/engine/types';
 
+export { EngineFactory } from './core/engine/EngineFactory';
+export { GameLoop } from './core/engine/GameLoop';
+export { FallbackEngine } from './core/engine/FallbackEngine';
+export { WebGPUEngine } from './core/engine/WebGPUEngine';
+export { SpatialHashGrid } from './core/engine/SpatialHashGrid';
+export { ResponsiveCanvas } from './core/engine/ResponsiveCanvas';
+
 // ============================================================================
 // Service Interfaces (Optional - Tree-Shakeable)
 // ============================================================================
